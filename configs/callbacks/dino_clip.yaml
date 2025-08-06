@@ -1,0 +1,19 @@
+defaults:
+  - model_checkpoint
+  - model_summary
+  - rich_progress_bar
+  - _self_
+
+wandb_callback:
+  _target_: src.callbacks.dino_clip_callback.DinoClipCallback
+
+model_checkpoint:
+  dirpath: ${paths.output_dir}/checkpoints
+  filename: "epoch_{epoch:03d}"
+  monitor: "val/cos_ecg_txt"
+  mode: "max"
+  save_last: True
+  auto_insert_metric_name: False
+
+model_summary:
+  max_depth: -1

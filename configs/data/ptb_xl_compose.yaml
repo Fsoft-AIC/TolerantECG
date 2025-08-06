@@ -1,0 +1,19 @@
+_target_: src.data.ptb_xl_compose_datamodule.PtbXlComposeDataModule
+
+data_dir: "data/ptb-xl"
+
+sample_rate: 500
+level: 'diagnostic_super'
+
+denoising: False
+mask_rate: 0.5
+keep_num_lead: null
+noise_probs: [0.7, 0.7, 0.7]
+noise_rate: 0.5
+snr_db: [-6, 0]
+
+train_val_test_seed: [null, 0, 42]
+
+batch_size: 36
+num_workers: 0
+pin_memory: False

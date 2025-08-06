@@ -1,0 +1,10 @@
+_target_: src.data.ptb_xl_datamodule.PtbXlDataModule
+data_dir: "data/ptb-xl"
+
+sample_rate: 500
+level: "diagnostic_super"
+denoising: False
+
+batch_size: 36
+num_workers: 0
+pin_memory: False

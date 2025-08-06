@@ -1,0 +1,27 @@
+_target_: src.models.dino_clip_module.DinoClipLitModule
+
+defaults:
+  - ecg_encoder: convnext
+  - text_encoder: hugging_face_bert
+  - loss_function: clip
+
+alpha: 1
+beta: 1
+
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  lr: 3e-5
+  betas: [0.9, 0.999]
+  eps: 1e-8
+  weight_decay: 0.1
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  _partial_: true
+  T_max: 2000
+  eta_min: 1e-6
+  last_epoch: -1
+
+# compile model for faster training with pytorch 2.0
+compile: false

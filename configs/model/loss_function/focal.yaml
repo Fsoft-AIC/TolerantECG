@@ -1,0 +1,5 @@
+_target_: src.models.loss.focal_loss.FocalLoss
+alpha: 0.25
+gamma: 2
+logits: True
+reduce: 'mean'

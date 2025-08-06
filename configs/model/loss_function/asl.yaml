@@ -1,0 +1,6 @@
+_target_: src.models.loss.asl_loss.AsymmetricLoss
+gamma_neg: 2
+gamma_pos: 1
+clip: 0.05
+eps: 1e-8
+disable_torch_grad_focal_loss: True

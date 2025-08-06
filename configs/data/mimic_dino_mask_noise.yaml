@@ -1,0 +1,28 @@
+_target_: src.data.mimic_dino_mask_noise_datamodule.MimicDinoMaskNoiseDataModule
+
+data_dir: 'data/mimic-iv-ecg' 
+meta_dir: 'data/mimic-iv-ecg-ext-icd'
+chroma_dir: 'data/chroma_db'
+model_name: "michiyasunaga/BioLinkBERT-base"
+
+is_rag: True
+denoising: False
+subset_percent: 0.1
+sample_rate: 500
+
+global_num: 2
+local_num: 6
+
+global_mask_scale: [6, 12] 
+local_mask_scale: [1, 6]
+
+snr_db: [-6, 0]
+noise_probs: [0.7, 0.7, 0.7]
+noise_rate: 0.25
+
+train_val_test_seed: [null, 7, 123]
+
+train_val_test_split: [0.8, 0.1, 0.1]
+batch_size: 36
+num_workers: 10
+pin_memory: False

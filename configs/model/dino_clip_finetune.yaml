@@ -1,0 +1,27 @@
+_target_: src.models.dino_clip_finetune_module.DinoClipFinetuneLitModule
+
+defaults:
+  - ecg_encoder: convnext
+  - loss_function: bce
+
+ckpt_path: null
+is_finetune: True
+num_classes: null
+
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  lr: 5e-6
+  betas: [0.9, 0.999]
+  eps: 1e-8
+  weight_decay: 0.1
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  _partial_: true
+  factor: 0.1
+  mode: 'max'
+  patience: 10
+
+# compile model for faster training with pytorch 2.0
+compile: false

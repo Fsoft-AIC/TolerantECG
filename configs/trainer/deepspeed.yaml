@@ -1,0 +1,10 @@
+defaults:
+  - default.yaml
+
+strategy: "deepspeed_stage_2"
+
+accelerator: gpu
+devices: 1
+num_nodes: 1
+precision: "bf16"
+sync_batchnorm: True

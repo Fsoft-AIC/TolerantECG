@@ -1,0 +1,2 @@
+_target_: src.models.loss.contrastive_loss.ContrastiveLoss
+temperature: 0.07

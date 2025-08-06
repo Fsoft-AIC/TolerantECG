@@ -1,0 +1,16 @@
+_target_: src.data.mit_bih_compose_datamodule.MitBihComposeDataModule
+
+data_dir: "data/mit-bih"
+sample_rate: 500
+denoising: False
+multilabel: True
+
+noise_probs: [0.7, 0.7, 0.7]
+noise_rate:  0.5
+snr_db: [-6, 0]
+
+train_val_test_seed: [null, 0, 42]
+
+batch_size: 36
+num_workers: 0
+pin_memory: False

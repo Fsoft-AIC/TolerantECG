@@ -1,0 +1,10 @@
+_target_: src.models.ecg_encoder.convnext.ConvNeXtV2
+num_dim: 1
+in_chans: 12
+num_classes: 768
+depths: [3, 3, 9, 3]
+dims: [96, 192, 384, 768]
+drop_path_rate: 0.0
+head_bias: false
+last_norm: false
+seed: 42

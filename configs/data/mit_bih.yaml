@@ -1,0 +1,10 @@
+_target_: src.data.mit_bih_datamodule.MitBihDataModule
+
+data_dir: "data/mit-bih"
+sample_rate: 500
+denoising: False
+multilabel: True
+
+batch_size: 36
+num_workers: 0
+pin_memory: False
