@@ -68,7 +68,6 @@ def train(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
     trainer: Trainer = hydra.utils.instantiate(
         cfg.trainer, 
-        strategy='ddp_find_unused_parameters_true',
         callbacks=callbacks, 
         logger=logger,
         # limit_train_batches=1.0,

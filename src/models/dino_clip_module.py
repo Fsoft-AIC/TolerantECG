@@ -1,5 +1,6 @@
 import io
 from typing import Any, Dict, Tuple
+import os
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -241,17 +242,17 @@ class DinoClipLitModule(LightningModule):
         self.val_loss.reset()
 
         self.val_cos_ecg_txt.reset()
-        self.val_cos_ecg_mask.reset()
-        self.val_cos_ecg_noise.reset()
-
-        self.val_kl_ecg_mask.reset()
-        self.val_kl_ecg_noise.reset()
-
         self.val_best_cos_ecg_txt.reset()
-        self.val_best_cos_ecg_mask.reset()
-        self.val_best_cos_ecg_noise.reset()
-        self.val_best_kl_ecg_mask.reset()
-        self.val_best_kl_ecg_noise.reset()
+
+        if hasattr(self, 'val_cos_ecg_mask'):
+            self.val_cos_ecg_mask.reset()
+            self.val_cos_ecg_noise.reset()
+            self.val_kl_ecg_mask.reset()
+            self.val_kl_ecg_noise.reset()
+            self.val_best_cos_ecg_mask.reset()
+            self.val_best_cos_ecg_noise.reset()
+            self.val_best_kl_ecg_mask.reset()
+            self.val_best_kl_ecg_noise.reset()
 
     def model_step(
         self, batch: Tuple[torch.Tensor, torch.Tensor], dataloader_idx: int
@@ -539,8 +540,8 @@ class DinoClipLitModule(LightningModule):
         else:
             self.log("test/loss_total_noise", self.test_loss, on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size, sync_dist=True, add_dataloader_idx=False)
             self.log("test/loss_dino_noise", loss_dino, on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size, sync_dist=True, add_dataloader_idx=False)
-            self.log("test/cos_ecg_noise", self.test_cos_ecg_mask, on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size, sync_dist=True, add_dataloader_idx=False)
-            self.log("test/kl_ecg_noise", self.test_kl_ecg_mask, on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size, sync_dist=True, add_dataloader_idx=False)
+            self.log("test/cos_ecg_noise", self.test_cos_ecg_noise, on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size, sync_dist=True, add_dataloader_idx=False)
+            self.log("test/kl_ecg_noise", self.test_kl_ecg_noise, on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size, sync_dist=True, add_dataloader_idx=False)
 
         return ecgs, mask_ecgs, texts, paths
 
@@ -561,7 +562,8 @@ class DinoClipLitModule(LightningModule):
         """
         if self.hparams.compile and stage == "fit":
             self.student_ecg_encoder = torch.compile(self.student_ecg_encoder)
-            self.teacher_ecg_encoder = torch.compile(self.teacher_ecg_encoder)
+            self.teacher_mask_ecg_encoder = torch.compile(self.teacher_mask_ecg_encoder)
+            self.teacher_noise_ecg_encoder = torch.compile(self.teacher_noise_ecg_encoder)
             self.text_encoder = torch.compile(self.text_encoder)
 
             self.student_clip_head = torch.compile(self.student_clip_head)
@@ -603,6 +605,3 @@ class DinoClipLitModule(LightningModule):
             if "student_ecg_encoder" in k:
                 encoder_state_dict[k] = v
         torch.save(encoder_state_dict, save_path)
-
-if __name__ == "__main__":
-    _ = DinoMaskNoiseLitModule()

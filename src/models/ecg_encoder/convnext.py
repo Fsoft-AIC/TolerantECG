@@ -120,7 +120,7 @@ class ConvNeXtV2(nn.Module):
                  drop_path_rate=0., 
                  head_bias=False,
                  last_norm=False,
-                 seed=42
+                 seed=None
                  ):
         if seed is not None:
             torch.manual_seed(seed)

@@ -5,12 +5,18 @@ from PIL import Image
 
 import os
 import cv2
+import torch
 import numpy as np
 from math import ceil 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 
 def signal_to_image(ecg_signal, sample_rate=500, title="", show_grid=False, show_lead_name=False, is_crop=True, is_bin=False, is_12_individual=False, **kwargs):
+    if torch.is_tensor(ecg_signal):
+        ecg_signal = ecg_signal.to(torch.float32)
+    if isinstance(ecg_signal, np.ndarray):
+        ecg_signal = ecg_signal.astype(np.float32)
+
     if not is_12_individual:
         if is_crop:
             plot_func = plot_crop

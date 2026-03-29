@@ -1,7 +1,7 @@
 _target_: src.models.text_encoder.hugging_face_bert.HuggingFaceBert
 model_name: ${data.model_name}
 num_classes: 768
-is_flash_attn: true
-is_finetune: true
+is_flash_attn: false
+is_finetune: false
 head_bias: false
-last_norm: false
+last_norm: true

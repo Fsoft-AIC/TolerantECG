@@ -10,7 +10,7 @@ mask_rate: 0.5
 keep_num_lead: null
 noise_probs: [0.7, 0.7, 0.7]
 noise_rate: 0.5
-snr_db: [-6, 0]
+snr_db: [-10, 0]
 
 train_val_test_seed: [null, 0, 42]
 

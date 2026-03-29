@@ -2,9 +2,9 @@
 
 defaults:
   - _self_
-  - data: mimic_ecg # choose datamodule with `test_dataloader()` for evaluation
-  - model: esi
-  - callbacks: esi
+  - data: ptb_xl_compose # choose datamodule with `test_dataloader()` for evaluation
+  - model: dino_clip_finetune
+  - callbacks: ptb_xl
   - logger: wandb
   - trainer: default
   - paths: default

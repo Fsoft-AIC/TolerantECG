@@ -6,5 +6,4 @@ depths: [3, 3, 9, 3]
 dims: [96, 192, 384, 768]
 drop_path_rate: 0.0
 head_bias: false
-last_norm: false
-seed: 42
+last_norm: true

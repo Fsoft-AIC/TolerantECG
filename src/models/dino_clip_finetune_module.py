@@ -53,10 +53,6 @@ class DinoClipFinetuneLitModule(LightningModule):
         self.out_layer = torch.nn.Linear(self.ecg_encoder.out_dim, num_classes)
         # loss function
         self.multilabel_criterion = loss_function
-        if self.hparams.weight_path is not None:
-            print("Adding positive weights")
-            pos_weight = torch.load(weight_path, map_location=self.device)
-            self.multilabel_criterion.pos_weight = pos_weight
 
         # for averaging loss across batches
         self.train_loss = MeanMetric(nan_strategy='error')

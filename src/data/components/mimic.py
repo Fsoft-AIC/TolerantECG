@@ -1,6 +1,3 @@
-import rootutils
-rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
-
 import re
 import os
 import json
@@ -33,7 +30,7 @@ class MimicDataset(torch.utils.data.Dataset):
                  subset_percent=1.0,
                  denoising = True,
                  sample_rate = 500,
-                 seed=42,
+                 seed=None,
                  ):
         super().__init__()
 
