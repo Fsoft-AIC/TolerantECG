@@ -16,7 +16,7 @@ def signal_to_image(ecg_signal, sample_rate=500, title="", show_grid=False, show
         ecg_signal = ecg_signal.to(torch.float32)
     if isinstance(ecg_signal, np.ndarray):
         ecg_signal = ecg_signal.astype(np.float32)
-
+    
     if not is_12_individual:
         if is_crop:
             plot_func = plot_crop

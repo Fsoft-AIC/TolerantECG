@@ -4,7 +4,7 @@ defaults:
   - ecg_encoder: convnext
   - loss_function: bce
 
-ckpt_path: null
+encoder_ckpt_path: null
 is_finetune: True
 num_classes: null
 

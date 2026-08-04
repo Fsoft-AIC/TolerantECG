@@ -33,18 +33,16 @@ class DinoClipLitModule(LightningModule):
     def __init__(
         self,
         ecg_encoder: torch.nn.Module,
-        text_encoder: torch.nn.Module = None,
+        text_encoder: torch.nn.Module,
         loss_function: torch.nn.Module = None,
         alpha: int = 1,
         beta: int = 1,
+        out_dim: int = 768,
         optimizer: torch.optim.Optimizer = None,
         scheduler: torch.optim.lr_scheduler = None,
         compile: bool = False,
-        seed=None,
         **kwargs,
     ) -> None:
-        if seed is not None:
-            torch.manual_seed(seed)
 
         super().__init__()
         self.automatic_optimization = False
@@ -62,25 +60,20 @@ class DinoClipLitModule(LightningModule):
         self.student_ecg_encoder = ecg_encoder
         self.text_encoder = text_encoder
 
-        embed_dim = ecg_encoder.embed_dim
-        out_dim = ecg_encoder.out_dim
-
-        self.student_ecg_encoder.head = nn.Identity()
-        if text_encoder is not None:
-            self.text_encoder.head = nn.Identity()
+        ecg_embed_dim = ecg_encoder.embed_dim
+        text_embed_dim = text_encoder.embed_dim
 
         self.teacher_mask_ecg_encoder = deepcopy(self.student_ecg_encoder)
         self.teacher_noise_ecg_encoder = deepcopy(self.student_ecg_encoder)
 
-        self.teacher_mask_dino_head = DINOHead(in_dim=embed_dim, out_dim=out_dim, use_bn=False, nlayers=1, seed=seed)
-        self.student_mask_dino_head = DINOHead(in_dim=embed_dim, out_dim=out_dim, use_bn=False, nlayers=1, seed=seed)
+        self.teacher_mask_dino_head = DINOHead(in_dim=ecg_embed_dim, out_dim=out_dim, use_bn=False, nlayers=1)
+        self.student_mask_dino_head = DINOHead(in_dim=ecg_embed_dim, out_dim=out_dim, use_bn=False, nlayers=1)
 
-        self.teacher_noise_dino_head = DINOHead(in_dim=embed_dim, out_dim=out_dim, use_bn=False, nlayers=1, seed=seed)
-        self.student_noise_dino_head = DINOHead(in_dim=embed_dim, out_dim=out_dim, use_bn=False, nlayers=1, seed=seed)
+        self.teacher_noise_dino_head = DINOHead(in_dim=ecg_embed_dim, out_dim=out_dim, use_bn=False, nlayers=1)
+        self.student_noise_dino_head = DINOHead(in_dim=ecg_embed_dim, out_dim=out_dim, use_bn=False, nlayers=1)
 
-        self.student_clip_head = nn.Linear(embed_dim, out_dim, bias=ecg_encoder.head_bias)
-        if text_encoder is not None:
-            self.text_clip_head = nn.Linear(embed_dim, out_dim, bias=text_encoder.head_bias)
+        self.student_clip_head = nn.Linear(ecg_embed_dim, out_dim, bias=False)
+        self.text_clip_head = nn.Linear(text_embed_dim, out_dim, bias=False)
 
         self.teacher_mask_ecg_encoder.load_state_dict(self.student_ecg_encoder.state_dict())
         self.teacher_mask_dino_head.load_state_dict(self.student_mask_dino_head.state_dict())
@@ -97,9 +90,8 @@ class DinoClipLitModule(LightningModule):
         for p in self.teacher_noise_dino_head.parameters():
             p.requires_grad = False
         
-        if text_encoder is not None:
-            self.text_tokenizer = HuggingFaceTokenizer(self.text_encoder.model_name)
-            print(f"{self.text_encoder.model_name} tokenizer")
+        self.text_tokenizer = HuggingFaceTokenizer(self.text_encoder.model_name)
+        print(f"{self.text_encoder.model_name} tokenizer")
 
         # loss function
         self.momentum_teacher = 0.996
@@ -599,7 +591,7 @@ class DinoClipLitModule(LightningModule):
         save_path = save_path if save_path else self.trainer.default_root_dir
         os.makedirs(save_path, exist_ok=True)
 
-        save_path = os.path.join(save_path, "encoder.pt")
+        save_path = os.path.join(save_path, "TolerantECG_encoder.pth")
         encoder_state_dict = {}
         for k, v in checkpoint['state_dict'].items():
             if "student_ecg_encoder" in k:

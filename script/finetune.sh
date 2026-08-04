@@ -17,14 +17,12 @@ data.level="diagnostic_super" \
 \
 model=dino_clip_finetune \
 model.ecg_encoder.in_chans=12 \
-model.ecg_encoder.num_dim=1 \
-model.ecg_encoder.head_bias=False \
-model.ecg_encoder.last_norm=True \
 \
 model/loss_function=bce \
 model.is_finetune=True \
 model.optimizer.lr=5e-6 \
+model.encoder_ckpt_path="path/to/encoder.pt" \
 \
 callbacks=ptb_xl \
 ~callbacks.wandb_callback \
-model.num_classes=5
+model.num_classes=5 \

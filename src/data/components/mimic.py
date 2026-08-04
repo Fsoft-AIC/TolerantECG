@@ -25,12 +25,9 @@ class MimicDataset(torch.utils.data.Dataset):
                  data_dir='data/mimic-iv-ecg', 
                  meta_dir='data/mimic-iv-ecg-ext-id',
                  chroma_dir='data/chroma_db',
-
                  is_rag: bool = True,
-                 subset_percent=1.0,
                  denoising = True,
                  sample_rate = 500,
-                 seed=None,
                  ):
         super().__init__()
 
@@ -76,10 +73,6 @@ class MimicDataset(torch.utils.data.Dataset):
             self.processed_data = pd.read_csv(processed_data_path, index_col=0)
             clean_memory(processed_data_path)
 
-            # get subset
-            if subset_percent < 1.0:
-                self.processed_data = self.processed_data.sample(frac=subset_percent, random_state=seed)
-
             return
 
         record_list = pd.read_csv(os.path.join(data_dir, "record_list.csv"))
@@ -122,9 +115,6 @@ class MimicDataset(torch.utils.data.Dataset):
 
         self.processed_data = pd.DataFrame(self.processed_data)
         self.processed_data.to_csv(processed_data_path)
-
-        if subset_percent < 1.0:
-            self.processed_data = self.processed_data.sample(frac=subset_percent, random_state=seed)
 
         clean_memory(processed_data_path, dataset)
 

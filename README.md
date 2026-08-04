@@ -20,6 +20,8 @@ data
 │   |   record_list.csv
 │   └───files
 │       ...
+└───mimic-iv-ecg-ext-id
+│   |   records_w_diag_icd10.csv
 └───mit-bih
 |   │   100.atr
 |   │   100.dat
@@ -48,8 +50,25 @@ pip install -r requirements.txt
 python -m src.init_cfr
 ```
 
-## Training & fintuning
-The training scripts are provided in the `script` folder. Or it can be simply run as  followed:
+## Pretrained Checkpoint
+
+The pre-trained weights for the TolerantECG encoder (`TolerantECG_encoder.pth`) are available on Hugging Face:
+🤗 **[ndhuynh02/TolerantECG](https://huggingface.co/ndhuynh02/TolerantECG)**
+
+You can download the checkpoint manually or programmatically via Python:
+
+```python
+from huggingface_hub import hf_hub_download
+
+hf_hub_download(
+    repo_id="ndhuynh02/TolerantECG", 
+    filename="TolerantECG_encoder.pth", 
+    local_dir="checkpoints"
+)
+```
+
+## Training & finetuning
+The training scripts are provided in the `script` folder. Or it can be simply run as followed:
 - Pretraining with MIMIC-IV-ECG:
 ```bash
 ./script/train.sh
@@ -58,4 +77,5 @@ The training scripts are provided in the `script` folder. Or it can be simply ru
 ```bash
 ./script/finetune.sh
 ```
-Please note to change some of the arguments in the `.sh` files for desire modification.
+Make sure to set `model.encoder_ckpt_path` in `script/finetune.sh` to the path of your downloaded checkpoint (e.g., `checkpoints/TolerantECG_encoder.pth`).
+Please note to change some of the arguments in the `.sh` files for desired modification.

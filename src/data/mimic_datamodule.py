@@ -145,13 +145,3 @@ class ECGBatchCollage:
         input_ids['ecgs'] = ecg_image
 
         return input_ids, paths
-        
-
-if __name__ == "__main__":
-    data = MimicDataModule(ecg_mimic_dir="data/mimic-iv-ecg", batch_size=2, num_dim=2)
-    data.setup()
-
-    val = data.val_dataloader()
-    batch = next(iter(val))
-    inputs, paths = batch
-    print(inputs['image'].shape)

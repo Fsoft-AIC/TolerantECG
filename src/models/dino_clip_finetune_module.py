@@ -17,13 +17,12 @@ class DinoClipFinetuneLitModule(LightningModule):
         self,
         ecg_encoder: torch.nn.Module,
         loss_function: torch.nn.Module = None,
-        ckpt_path: str = None,
+        encoder_ckpt_path: str = None,
         is_finetune: bool = True,
         num_classes: int = None,
         optimizer: torch.optim.Optimizer = None,
         scheduler: torch.optim.lr_scheduler = None,
         compile: bool = False,
-        seed = None,
         **kwargs
     ) -> None:
         """
@@ -34,12 +33,11 @@ class DinoClipFinetuneLitModule(LightningModule):
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False, 
-                                  ignore=['ecg_encoder', "loss_function", "ckpt_path"])
+                                  ignore=['ecg_encoder', "loss_function", "encoder_ckpt_path"])
 
         self.ecg_encoder = ecg_encoder
-        self.ecg_encoder.head = torch.nn.Identity()
-        if ckpt_path is not None:
-            state_dict = torch.load(ckpt_path, map_location=self.device)
+        if encoder_ckpt_path is not None:
+            state_dict = torch.load(encoder_ckpt_path, map_location=self.device)
             self.ecg_encoder.load_state_dict(state_dict)
 
         if not is_finetune:
@@ -50,7 +48,8 @@ class DinoClipFinetuneLitModule(LightningModule):
         for param in self.ecg_encoder.parameters():
             param.requires_grad = is_finetune
 
-        self.out_layer = torch.nn.Linear(self.ecg_encoder.out_dim, num_classes)
+        # classifier
+        self.out_layer = torch.nn.Linear(self.ecg_encoder.embed_dim, num_classes)
         # loss function
         self.multilabel_criterion = loss_function
 

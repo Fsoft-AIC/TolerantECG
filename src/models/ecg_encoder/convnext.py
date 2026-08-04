@@ -17,9 +17,8 @@ class LayerNorm(nn.Module):
     shape (batch_size, height, width, channels) while channels_first corresponds to inputs 
     with shape (batch_size, channels, height, width).
     """
-    def __init__(self, num_dim, normalized_shape, eps=1e-6, data_format="channels_last"):
+    def __init__(self, normalized_shape, eps=1e-6, data_format="channels_last"):
         super().__init__()
-        self.num_dim = num_dim
         self.weight = nn.Parameter(torch.ones(normalized_shape))
         self.bias = nn.Parameter(torch.zeros(normalized_shape))
         self.eps = eps
@@ -35,31 +34,19 @@ class LayerNorm(nn.Module):
             u = x.mean(1, keepdim=True)
             s = (x - u).pow(2).mean(1, keepdim=True)
             x = (x - u) / torch.sqrt(s + self.eps)
-
-            if self.num_dim == 1: 
-                x = self.weight[:, None] * x + self.bias[:, None]
-            else:
-                x = self.weight[:, None, None] * x + self.bias[:, None, None]
+            x = self.weight[:, None] * x + self.bias[:, None]
             return x
 
 class GRN(nn.Module):
     """ GRN (Global Response Normalization) layer
     """
-    def __init__(self, num_dim, dim):
+    def __init__(self, dim):
         super().__init__()
-        self.num_dim = num_dim
-        if num_dim == 1:
-            self.gamma = nn.Parameter(torch.zeros(1, 1, dim))
-            self.beta = nn.Parameter(torch.zeros(1, 1, dim))
-        else:
-            self.gamma = nn.Parameter(torch.zeros(1, 1, 1, dim))
-            self.beta = nn.Parameter(torch.zeros(1, 1, 1, dim))
+        self.gamma = nn.Parameter(torch.zeros(1, 1, dim))
+        self.beta = nn.Parameter(torch.zeros(1, 1, dim))
 
     def forward(self, x):
-        if self.num_dim == 1:
-            Gx = torch.norm(x, p=2, dim=1, keepdim=True)
-        else:
-            Gx = torch.norm(x, p=2, dim=(1,2), keepdim=True)
+        Gx = torch.norm(x, p=2, dim=1, keepdim=True)
         Nx = Gx / (Gx.mean(dim=-1, keepdim=True) + 1e-6)
         return self.gamma * (x * Nx) + self.beta + x
 
@@ -70,34 +57,26 @@ class Block(nn.Module):
         dim (int): Number of input channels.
         drop_path (float): Stochastic depth rate. Default: 0.0
     """
-    def __init__(self, num_dim, ConvLayer, dim, drop_path=0.):
+    def __init__(self, dim, drop_path=0.):
         super().__init__()
-        self.num_dim = num_dim
-        self.dwconv = ConvLayer(dim, dim, kernel_size=7, padding=3, groups=dim) # depthwise conv
-        self.norm = LayerNorm(num_dim, dim, eps=1e-6)
+        self.dwconv = nn.Conv1d(dim, dim, kernel_size=7, padding=3, groups=dim) # depthwise conv
+        self.norm = LayerNorm(dim, eps=1e-6)
         self.pwconv1 = nn.Linear(dim, 4 * dim) # pointwise/1x1 convs, implemented with linear layers
         self.act = nn.GELU()
-        self.grn = GRN(num_dim, 4 * dim)
+        self.grn = GRN(4 * dim)
         self.pwconv2 = nn.Linear(4 * dim, dim)
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
 
     def forward(self, x):
         input = x
         x = self.dwconv(x)
-        if self.num_dim == 1:
-            x = x.permute(0, 2, 1) # (N, C, L) -> (N, L, C)
-        else:
-            x = x.permute(0, 2, 3, 1) # (N, C, H, W) -> (N, H, W, C)
+        x = x.permute(0, 2, 1) # (N, C, L) -> (N, L, C)
         x = self.norm(x)
         x = self.pwconv1(x)
         x = self.act(x)
         x = self.grn(x)
         x = self.pwconv2(x)
-        if self.num_dim == 1:
-            x = x.permute(0, 2, 1) # (N, L, C) -> (N, C, L)
-        else:
-            x = x.permute(0, 3, 1, 2) # (N, H, W, C) -> (N, C, H, W)
-
+        x = x.permute(0, 2, 1) # (N, L, C) -> (N, C, L)
         x = input + self.drop_path(x)
         return x
 
@@ -112,41 +91,25 @@ class ConvNeXtV2(nn.Module):
     """
 
     def __init__(self, 
-                 num_dim=1,
                  in_chans=12,
-                 num_classes=768,
                  depths=[3, 3, 9, 3], 
                  dims=[96, 192, 384, 768], 
                  drop_path_rate=0., 
-                 head_bias=False,
-                 last_norm=False,
-                 seed=None
                  ):
-        if seed is not None:
-            torch.manual_seed(seed)
-
         super().__init__()
-
-        self.num_dim = num_dim
         self.in_chans = in_chans
-        
-        if num_dim == 1:
-            ConvLayer = nn.Conv1d
-        else:
-            ConvLayer = nn.Conv2d
-
         self.depths = depths
         self.downsample_layers = nn.ModuleList() # stem and 3 intermediate downsampling conv layers
 
         stem = nn.Sequential(
-            ConvLayer(in_chans, dims[0], kernel_size=4, stride=4),
-            LayerNorm(num_dim, dims[0], eps=1e-6, data_format="channels_first")
+            nn.Conv1d(in_chans, dims[0], kernel_size=4, stride=4),
+            LayerNorm(dims[0], eps=1e-6, data_format="channels_first")
         )
         self.downsample_layers.append(stem)
         for i in range(3):
             downsample_layer = nn.Sequential(
-                    LayerNorm(num_dim, dims[i], eps=1e-6, data_format="channels_first"),
-                    ConvLayer(dims[i], dims[i+1], kernel_size=2, stride=2),
+                    LayerNorm(dims[i], eps=1e-6, data_format="channels_first"),
+                    nn.Conv1d(dims[i], dims[i+1], kernel_size=2, stride=2),
             )
             self.downsample_layers.append(downsample_layer)
 
@@ -155,19 +118,14 @@ class ConvNeXtV2(nn.Module):
         cur = 0
         for i in range(4):
             stage = nn.Sequential(
-                *[Block(num_dim, ConvLayer, dim=dims[i], drop_path=dp_rates[cur + j]) for j in range(depths[i])]
+                *[Block(dim=dims[i], drop_path=dp_rates[cur + j]) for j in range(depths[i])]
             )
             self.stages.append(stage)
             cur += depths[i]
 
-        self.norm = nn.LayerNorm(dims[-1]) if last_norm else nn.Identity()
-        self.head = nn.Linear(dims[-1], num_classes, head_bias) if num_classes > 0 else nn.Identity()
+        self.norm = nn.LayerNorm(dims[-1])
 
         self.embed_dim = dims[-1]
-        self.out_dim = num_classes if num_classes > 0 else self.embed_dim
-        self.head_bias = head_bias
-        self.last_norm = last_norm
-
         self.apply(self._init_weights)
 
     def _init_weights(self, m):
@@ -180,49 +138,12 @@ class ConvNeXtV2(nn.Module):
         for i in range(4):
             x = self.downsample_layers[i](x)
             x = self.stages[i](x)
-        if self.num_dim == 1:
-            x = x.mean([-1])    # global average pooling, (N, C, L) -> (N, C)
-        else:
-            x = x.mean([-2, -1]) # global average pooling, (N, C, H, W) -> (N, C)
+        x = x.mean([-1])    # global average pooling, (N, C, L) -> (N, C)
         return x
 
     def forward_head(self, x):
-        return self.head(self.norm(x))
+        return self.norm(x)
 
     def forward(self, x):
         x = self.forward_features(x)
         return self.forward_head(x)
-    
-    def forward_intermidiate(self, x):
-        res = []
-        for i in range(4):
-            x = self.downsample_layers[i](x)
-            x = self.stages[i](x)
-            res.append(x)
-        if self.num_dim == 1:
-            x = x.mean([-1])    # global average pooling, (N, C, L) -> (N, C)
-        else:
-            x = x.mean([-2, -1]) # global average pooling, (N, C, H, W) -> (N, C)
-        res.append(x)
-
-        x = self.norm(x)
-        x = self.head(x)
-        res.append(x)
-
-        return res
-       
-
-if __name__ == "__main__":
-    x = torch.randn((4, 12, 5000))
-    model = ConvNeXtV2(num_dim=1, in_chans=12, num_classes=2048)
-
-    out = model(x)
-    print(out.shape)
-    
-    # outs = model.forward_inter(x)
-    # for out in outs:
-    #     print(out.shape)
-
-    # x = torch.randn((4, 12, 5000))
-    # model = ConvNeXtV2(num_dim=1)
-    # model(x)

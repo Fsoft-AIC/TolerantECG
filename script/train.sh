@@ -11,7 +11,7 @@ data.sample_rate=500 \
 data.denoising=False \
 data.is_rag=True \
 data.subset_percent=1.0 \
-data.num_workers=16 \
+data.num_workers=8 \
 data.batch_size=256 \
 data.local_num=8 \
 data.global_num=2 \
@@ -25,17 +25,10 @@ model=dino_clip \
 model/loss_function=clip \
 model.alpha=1.0 \
 model.beta=1.0 \
+model.out_dim=768 \
 \
-model.text_encoder.is_flash_attn=False \
 model.text_encoder.is_finetune=False \
-model.text_encoder.num_classes=768 \
-model.text_encoder.head_bias=False \
-model.text_encoder.last_norm=True \
 \
 model.ecg_encoder.in_chans=12 \
-model.ecg_encoder.num_dim=1 \
-model.ecg_encoder.num_classes=768 \
-model.ecg_encoder.head_bias=False \
-model.ecg_encoder.last_norm=True \
 \
 callbacks=dino_clip
