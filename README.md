@@ -79,3 +79,23 @@ The training scripts are provided in the `script` folder. Or it can be simply ru
 ```
 Make sure to set `model.encoder_ckpt_path` in `script/finetune.sh` to the path of your downloaded checkpoint (e.g., `checkpoints/TolerantECG_encoder.pth`).
 Please note to change some of the arguments in the `.sh` files for desired modification.
+
+## Citation
+```bibtex
+@inproceedings{10.1145/3746027.3755287,
+    author = {Nguyen, Huynh Dang and Pham, Trong-Thang and Le, Ngan and Nguyen, Van},
+    title = {TolerantECG: A Foundation Model for Imperfect Electrocardiogram},
+    year = {2025},
+    isbn = {9798400720352},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/3746027.3755287},
+    doi = {10.1145/3746027.3755287},
+    booktitle = {Proceedings of the 33rd ACM International Conference on Multimedia},
+    pages = {8097–8105},
+    numpages = {9},
+    keywords = {contrastive learning, electrocardiogram (ecg), foundation model, imperfect signal, knowledge retrieval, self-supervised learning},
+    location = {Dublin, Ireland},
+    series = {MM '25}
+}
+```
